@@ -11,6 +11,8 @@
 
 GHashTable* accept_map = NULL;
 GHashTable* connect_map = NULL;
+GHashTable* hash_table = NULL;
+
 
 
 
@@ -54,23 +56,9 @@ static int event_logger(void* ctx, void* data, size_t len) {
 	else
 		map = connect_map;
 
-	gpointer value = g_hash_table_lookup(map,(gpointer)sf->comm);
+gpointer value = g_hash_table_lookup(map,(gpointer)sf->comm);
 	gpointer key = (gpointer)strdup(sf->comm);
 
-/*
-	switch(sf->sa_family) {
-		case AF_INET:
-			strncat((char*)key,"AF_INET",7);
-		case AF_INET6:
-			strncat((char*)key,"AF_INET6",8);
-		case AF_UNIX:
-			strncat((char*)key,"AF_UNIX",7);
-		case AF_UNSPEC:
-			strncat((char*)key,"AF_UNSPEC",9);
-		default:
-			strncat((char*)key,"AF_OTHER",8);
-	}
-*/
 	if(value) {
 		int new_value = GPOINTER_TO_INT(value)+1;
 		g_hash_table_insert(map,key,GINT_TO_POINTER(new_value));
@@ -78,6 +66,22 @@ static int event_logger(void* ctx, void* data, size_t len) {
 	else {
 		g_hash_table_insert(map,key,GINT_TO_POINTER(1));
 	}
+
+	char *fam = (char *)g_hash_table_lookup(hash_table, GINT_TO_POINTER(sf->sa_family));
+	if(!fam)
+		fam = strdup(":AF_UNSPEC");
+
+	key = strdup(key);
+	strcat(key,fam);
+
+	if(value) {
+		int new_value = GPOINTER_TO_INT(value)+1;
+		g_hash_table_insert(map,key,GINT_TO_POINTER(new_value));
+	}
+	else {
+		g_hash_table_insert(map,key,GINT_TO_POINTER(1));
+	}
+
 	return 0;
 }
 
@@ -86,6 +90,23 @@ int main(int argc, char **argv)
 	struct ring_buffer *rb = NULL;
 	struct socket *skel;
 	int err;
+
+
+	hash_table = g_hash_table_new_full(g_direct_hash, g_direct_equal,NULL, NULL);
+
+	//initialize the mappings
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_UNSPEC),strdup( ":AF_UNSPEC"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_UNIX),strdup( ":AF_UNIX"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_INET),strdup( ":AF_INET"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_BRIDGE),strdup( ":AF_BRIDGE"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_INET6),strdup( ":AF_INET6"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_SECURITY),strdup( ":AF_SECURITY"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_KEY),strdup( ":AF_KEY"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_NETLINK),strdup( ":AF_NETLINK"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_PACKET),strdup( ":AF_PACKET"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_VSOCK),strdup( ":AF_VSOCK"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_XDP),strdup( ":AF_XDP"));
+	g_hash_table_insert(hash_table, GINT_TO_POINTER(AF_MAX),strdup( ":AF_MAX"));
 
 	accept_map = g_hash_table_new(g_str_hash, g_str_equal);
 	connect_map = g_hash_table_new(g_str_hash, g_str_equal);
@@ -142,4 +163,3 @@ cleanup:
 	socket__destroy(skel);
 	return -err;
 }
-
