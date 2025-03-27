@@ -1,0 +1,17 @@
+bash-5.1# ./socket
+^C
+@accept[ConfigAgent: 2]
+@accept[Aaa: 18]
+@accept[nginx: 2]
+@connect[snmpd: 4]
+@connect[xinetd: 6]
+@connect[python3: 6]
+@connect[service: 8]
+@connect[dnsmasq: 4]
+@connect[unix_chkpwd: 6]
+@connect[sshd: 50]
+@connect[LedPolicy: 5]
+@connect[sh: 4]
+@connect[CliShell: 2]
+@connect[StpTxRx: 76]
+@connect[crond: 2]
