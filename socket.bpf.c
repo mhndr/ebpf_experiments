@@ -33,10 +33,10 @@ int sys_enter_connect(struct trace_event_raw_sys_enter* ctx)
 	args.uservaddr = (struct sockaddr   *)ctx->args[1];
 
 	struct sock_fam* sf = bpf_ringbuf_reserve(&ringbuf,sizeof(struct sock_fam),0);
-    if(!sf) {
-    	bpf_printk("bpf_ringbuf_reserve failed \n");
-        return 1;
-    }
+    	if(!sf) {
+    		bpf_printk("bpf_ringbuf_reserve failed \n");
+        	return 1;
+    	}
 
 	sf->type = connect;
 	bpf_get_current_comm(&(sf->comm),sizeof(sf->comm));
