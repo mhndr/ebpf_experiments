@@ -59,12 +59,11 @@ int sys_exit_connect(struct trace_event_raw_sys_exit* ctx)
  * SYSCALL_DEFINE3(accept, int, fd, struct sockaddr __user *, upeer_sockaddr,
  *         int __user *, upeer_addrlen)
  **/
-
 SEC("tracepoint/syscalls/sys_enter_accept4")
 int sys_enter_accept(struct trace_event_raw_sys_enter* ctx)
 {
 	pid_t pid = bpf_get_current_pid_tgid() >> 32;
-	bpf_printk("BPF triggered sys_enter_accept from PID %d.\n", pid);
+	bpf_printk("BPF triggered sys_enter_accept4 from PID %d.\n", pid);
 	struct accept_args_t args={};
 	args.upeer_sockaddr = (struct sockaddr   *)ctx->args[1];
 
@@ -79,7 +78,7 @@ int sys_exit_accept(struct trace_event_raw_sys_exit* ctx)
 {
 	struct accept_args_t *args;
 	pid_t pid = bpf_get_current_pid_tgid() >> 32;
-	bpf_printk("BPF triggered sys_exit_accept from PID %d.\n", pid);
+	bpf_printk("BPF triggered sys_exit_accept4 from PID %d.\n", pid);
 
 	if(ctx->ret > 0) {
 		args = bpf_map_lookup_elem(&accept_args, &pid);
